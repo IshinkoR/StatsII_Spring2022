@@ -1,0 +1,97 @@
+---
+title: 'PROBLEM SET 1'
+
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Question 1
+
+The Kolmogorov Smirnov test uses cumulative distribution statistics test the similarity of the empirical distribution of some observed data and a specified PDF, and serves as a goodness of fit test. The test statistic is created by:
+
+$$ D= \max_{i=1:n}\Big\{\frac{i}{n}-F_{(i)}, F_{(i)}-\frac{i-n}{n}\Big\}$$
+where *F* is the theoretical cumulative distribution of the distribution being tested and $F_{(i)}$ is the *i*th ordered value. Intuitively, the statistic takes the largest absolute difference between the two distribution functions across all *x* values. Large values indicate dissimilarity and the rejection of the hypothesis that the empirical distribution matches the queried theoretical distribution. The p value is calculated from the Kolmogorov Smirnoff CDF:
+
+$$ p(D\leq x)\frac{\sqrt{2\pi}}{x}\sum_{k=1}^{\infty}e^{-(2k-1)^2\pi^2/8x^2} $$
+
+which generally requires approximation methods (see Marsaglia, Tsang, and Wang 2003).\
+This so called non parametric test (this label comes from the fact that the distribution of the test statistic does not depend on the distribution of the data being tested) performs poorly in small samples, but works well in a simulation environment. Write an R function that implements this test where the reference distribution is normal. Using R generate 1,000 Cauchy random variables `(rcauchy(1000, location = 0, scale = 1))` and perform the test (remember, use the same seed, something like `set.seed(123)`, whenever you're generating your own data).\
+Write an R function that implements this test where the reference distribution is normal. As a hint, you can create the empirical distribution and theoretical CDF using this code:
+
+```{r, eval=FALSE}
+# create	empirical	distribution	of	observed data 
+ECDF <-  ecdf ( data )
+empiricalCDF <-  ECDF( data )
+# generate	test	st at is ti c
+D <-  max(abs(empiricalCDF - pnorm( empirical ) ) )
+
+```
+
+## Solution
+
+### Generating the data
+
+```{r}
+set.seed(2314)
+data=rcauchy(1000, location = 0, scale = 1)
+head(data,100)
+```
+
+
+```{r}
+# create	empirical	distribution	of	observed data 
+ECDF <-  ecdf ( data )
+empiricalCDF <-  ECDF( data )
+# generate	test	st at is ti c
+D <-  max(abs(empiricalCDF - pnorm( empiricalCDF ) ) )
+head(D)
+
+head(empiricalCDF,100)
+```
+
+### Kolmogrov testing
+
+```{r}
+ks.test(data, "pweibull", shape=2, scale=1)
+```
+
+Since the p-value is less than 0.05, it is significant. Hence we reject the hypothesis that the empirical distribution matches the queried theoretical distribution.
+
+
+# Question 2
+
+Estimate an OLS regression in R that uses the Newton-Raphson algorithm (specifically BFGS, which is a quasi-Newton method), and show that you get the equivalent results to using lm. Use the code below to create your data.
+
+```{r, eval=FALSE}
+set.seed (2314)
+data2 <- data.frame(x = runif (200 , 1 , 10) )
+data2$y <- 0 + 2.75*data2$x + rnorm(200 , 0 ,	1.5)
+```
+
+## Solution
+
+```{r}
+set.seed (2314)
+data2 <- data.frame(x = runif (200 , 1 , 10) )
+data2$y <- 0 + 2.75*data2$x + rnorm(200 , 0 ,	1.5)
+head(data2, 40)
+```
+
+## OLS regression in R that uses the Newton-Raphson algorithm 
+
+```{r}
+Raphsommodel=glm(y~1,data=data2,family=gaussian(link = "identity"))
+summary(Raphsommodel)
+```
+
+## Linear model
+
+```{r}
+linearmodel=lm(y~1,data=data2)
+summary(linearmodel)
+```
+
+Since the OLS estimates for both Newton-Raphson algorithm and using lm is the two models are the same.
