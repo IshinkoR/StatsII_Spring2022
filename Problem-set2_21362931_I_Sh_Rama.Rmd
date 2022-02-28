@@ -1,0 +1,115 @@
+---
+title: "Problem Set 2"
+author: "Applied Stats II"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+We're interested in what types of international environmental agreements or policies people support (Bechtel and Scheve 2013). So, we asked 8,500 individuals whether they support a given policy, and for each participant, we vary the (1) number of countries that participate in the international agreement and (2) sanctions for not following the agreement.
+
+Load in the data labeled climateSupport.csv on GitHub, which contains an observational study of 8,500 observations.
+
+-   Response variable
+
+    -   choice: 1 if the individual agreed with the policy; 0 if the individual did not support the
+        policy
+
+-   Explanatory variables.
+
+    -   countries: Number of participating countries [20 of 192; 80 of 192; 160 of 192
+
+    -   sanctions: Sanctions for missing emission reduction targets [None, 5%, 15%, and 20% of the
+        monthly household costs given 2% GDP growth]
+
+
+# Question 1
+
+Remember, we are interested in predicting the likelihood of an individual supporting a policy based on the number of countries participating and the possible sanctions for non-compliance.
+
+-   Fit an additive model. Provide the summary output, the global null hypothesis, and *p*-value. Please describe the results and provide a conclusion.
+
+
+
+## Solution
+
+### Loading the Dataset
+
+```{r}
+#Loading the dataset
+
+climateSupport <- read.csv("C:/Users/hp/Downloads/climateSupport.csv")
+
+
+climateSupport$choice <-  as.factor(climateSupport$choice)
+climateSupport$countries <- as.factor(climateSupport$countries)
+climateSupport$sanctions <- as.factor(climateSupport$sanctions)
+str(climateSupport)
+
+levels(climateSupport$choice)
+
+```
+
+### Logistic regression model
+
+```{r}
+logmodel <- glm(formula = choice~ countries + sanctions, data = climateSupport, family = binomial)
+summary(logmodel)
+```
+
+The model can be written as:
+$$ logit(p)= 0.24 - 0.648\times countries20 of 192 -0.31\times countries80 of 192-0.170\times sanctions20\% \\ + 0.325 \times sanctions5\% + 0.133\times sanctionsNone $$
+The Global null hypothesis is:  
+$ H_0: $ The model is not significant *VS* $ H_1: $ The model is significant  
+
+To test the significance for the overall model, we use the p- value.
+```{r}
+pvalue <- 1-pchisq((logmodel$null.deviance-logmodel$deviance), (logmodel$df.null-logmodel$df.residual));pvalue
+```
+
+The p-value is `r round(pvalue, 3)` which is less than $\alpha = 0.05$. We reject $H_0$, hence the model is significant.
+
+
+
+
+# Question 2
+
+If any of the explanatory variables are significant in this model, then:
+
+(a) For the policy in which nearly all countries participate [160 of 192], how does increasing sanctions from 5% to 15% change the odds that an individual will support the policy? (Interpretation of a coefficient)
+
+## Solution
+
+Increasing sanctions from 5% to 15% will reduce the odds that an individual will support the policy by 0.32510 and then by -0.31199. The decrease is significant since the coefficient is significant at $\alpha= 0.05$
+
+(b) For the policy in which very few countries participate [20 of 192], how does increasing sanctions from 5% to 15% change the odds that an individual will support the policy? (Interpretation of a coefficient)
+
+## Solution
+
+Increasing sanctions from 5% to 15% will reduce the odds that an individual will support the policy by 0.32510 and then by 0.64835. The decrease is significant since the coefficient is significant at $\alpha= 0.05$
+
+(c) What is the estimated probability that an individual will support a policy if there are 80 of 192 countries participating with no sanctions?
+
+## Solution
+
+```{r}
+pr <- 0.24244-0.31199+0.13325;pr
+```
+The estimated probability that an individual will support a policy if there are 80 of 192 countries participating with no sanctions is `r pr`.
+
+(d) Would the answers to 2a and 2b potentially change if we included the interaction term in this model? Why?
+
+    -   Perform a test to see if including an interaction is appropriate.
+## Solution
+
+### Model with Interactions
+
+
+```{r}
+logmodel2 <- glm(formula = choice~ countries * sanctions, data = climateSupport, family = binomial)
+summary(logmodel2)
+```
+
+The answers to 2a and 2b would not potentially change if we included the interaction term in this model because the interaction effect between the two variables is not significant.
